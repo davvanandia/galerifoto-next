@@ -1,5 +1,6 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+import NextAuth, { NextAuthOptions, User, Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { JWT } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 
@@ -28,32 +29,31 @@ export const authOptions: NextAuthOptions = {
 
         if (!passwordMatch) return null;
 
-        // return harus dikasih cast supaya TypeScript tidak error
         return {
           id: user.id,
-          name: user.name ?? "",
+          name: user.name,
           email: user.email,
           image: user.image ?? undefined,
-        } as any;
+        };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }: { token: any; user?: any }) {
+    async jwt({ token, user }: { token: JWT; user?: User }) {
       if (user) {
-        token.id = user.id;
+        token.id = user.id as string;
         token.name = user.name;
         token.email = user.email;
-        token.image = user.image;
+        token.image = (user as any).image;
       }
       return token;
     },
-    async session({ session, token }: { session: any; token: any }) {
-      if (token) {
+    async session({ session, token }: { session: Session; token: JWT }) {
+      if (token && session.user) {
         session.user.id = token.id;
         session.user.name = token.name;
         session.user.email = token.email;
-        session.user.image = token.image;
+        session.user.image = (token as any).image;
       }
       return session;
     },
