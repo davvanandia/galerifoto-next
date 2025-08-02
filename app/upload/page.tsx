@@ -1,13 +1,13 @@
 "use client";
 
-import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 export default function UploadPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -76,9 +76,11 @@ export default function UploadPage() {
         />
         {preview && (
           <div className="mb-4">
-            <img
+            <Image
               src={preview}
               alt="Preview"
+              width={400}
+              height={300}
               className="rounded-lg border border-gray-700"
             />
           </div>

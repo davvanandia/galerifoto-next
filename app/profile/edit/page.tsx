@@ -7,7 +7,7 @@ import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 
 export default function EditProfilePage() {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const [name, setName] = useState(session?.user?.name || "");
   const [email, setEmail] = useState(session?.user?.email || "");
   const [image, setImage] = useState<File | null>(null);
@@ -27,6 +27,7 @@ export default function EditProfilePage() {
     });
 
     if (res.ok) {
+      await update(); // refresh session agar data baru langsung terlihat
       Swal.fire({
         title: "Berhasil!",
         text: "Profil diperbarui",

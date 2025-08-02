@@ -9,10 +9,12 @@ export async function POST(req: Request) {
   console.log("DEBUG hasil query:", user);
 
   if (!user) {
-    return NextResponse.json({ error: "Email tidak ditemukan" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Email tidak ditemukan" },
+      { status: 404 }
+    );
   }
 
   console.log(`Kirim email reset ke ${email}`);
   return NextResponse.json({ message: "Reset password email sent" });
 }
-

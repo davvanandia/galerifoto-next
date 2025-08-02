@@ -1,13 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Swal from "sweetalert2";
 
 export default function ProfilePage() {
-  const { data: session } = useSession();
-  const [name, setName] = useState(session?.user?.name || "");
+  const { data: session, status, update } = useSession();
+  const [name, setName] = useState("");
   const [image, setImage] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.name) {
+      setName(session.user.name);
+    }
+  }, [status, session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,10 +29,15 @@ export default function ProfilePage() {
 
     if (res.ok) {
       Swal.fire("Berhasil", "Profil berhasil diperbarui", "success");
+      await update(); // Refresh session data
     } else {
       Swal.fire("Gagal", "Terjadi kesalahan", "error");
     }
   };
+
+  if (status === "loading") {
+    return <p className="p-6">Loading...</p>;
+  }
 
   return (
     <div className="max-w-lg mx-auto p-6 bg-gray-900 text-white rounded-xl mt-10">
