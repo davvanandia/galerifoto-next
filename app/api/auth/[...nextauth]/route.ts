@@ -4,6 +4,16 @@ import { JWT } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 
+interface ExtendedUser extends User {
+  id: string;
+  image?: string | null;
+}
+
+interface ExtendedJWT extends JWT {
+  id?: string;
+  image?: string | null;
+}
+
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   providers: [
@@ -29,31 +39,45 @@ export const authOptions: NextAuthOptions = {
 
         if (!passwordMatch) return null;
 
-        return {
+        const extendedUser: ExtendedUser = {
           id: user.id,
           name: user.name,
           email: user.email,
           image: user.image ?? undefined,
         };
+
+        return extendedUser;
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }: { token: JWT; user?: User }) {
+    async jwt({
+      token,
+      user,
+    }: {
+      token: ExtendedJWT;
+      user?: ExtendedUser;
+    }): Promise<ExtendedJWT> {
       if (user) {
-        token.id = user.id as string;
+        token.id = user.id;
         token.name = user.name;
         token.email = user.email;
-        token.image = (user as any).image;
+        token.image = user.image ?? null;
       }
       return token;
     },
-    async session({ session, token }: { session: Session; token: JWT }) {
+    async session({
+      session,
+      token,
+    }: {
+      session: Session;
+      token: ExtendedJWT;
+    }): Promise<Session> {
       if (token && session.user) {
-        session.user.id = token.id;
+        (session.user as ExtendedUser).id = token.id ?? "";
         session.user.name = token.name;
-        session.user.email = token.email;
-        session.user.image = (token as any).image;
+        session.user.email = token.email!;
+        session.user.image = token.image ?? undefined;
       }
       return session;
     },
